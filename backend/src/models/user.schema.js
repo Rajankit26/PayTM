@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema(
         },
         balance : {
             type :Number,
-            default : 1000
+            default : 1000       
         }
     },
     {
