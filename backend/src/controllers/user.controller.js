@@ -1,6 +1,7 @@
 import User from "../models/user.schema.js"
 import generateJWTToken from "../utils/generateJWT.js"
 import comparePassword from "../utils/comparePassword.js";
+import bcrypt from "bcrypt"
 
 export const signup = async(req,res)=>{
     try {
@@ -72,4 +73,49 @@ export const login = async(req,res)=>{
         userExists,
         token
     })
+}
+
+export const updateUser = async(req, res) =>{
+    try {
+        const {firstName, lastName, password} = req.body;
+        if(!firstName && !lastName && !password){
+            return res.status(400).json({
+                success : false,
+                message : "At least one field is required"
+            })
+        }
+
+        const userId = req.user._id;
+        const updateFields = {};
+        if(firstName){
+            updateFields.firstName = firstName;
+        }
+        if(lastName){
+            updateFields.lastName = lastName;
+        }
+        if(password){
+            const hashedPassword = await bcrypt.hash(password, 10);
+            updateFields.password = hashedPassword;
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(userId, {$set :updateFields},{new : true, runValidators : true}).select("-password");
+
+        if(!updatedUser){
+            return res.status(400).json({
+                success : false,
+                message : "User not found or can't update"
+            })
+        }
+
+        res.status(200).json({
+            success : true,
+            message : "User details updated successfully",
+            updatedUser
+        })
+    } catch (error) {
+        res.status(400).json({
+            success : false,
+            message : "Internal server error"
+        })
+    }
 }
