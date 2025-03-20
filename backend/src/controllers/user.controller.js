@@ -31,9 +31,10 @@ export const signup = async(req,res)=>{
         })
     
     } catch (error) {
+        console.error(error)
         res.json({
             success : false,
-            message : "Something went wrong"
+            message : error.message
         })
     }
 }
@@ -113,9 +114,50 @@ export const updateUser = async(req, res) =>{
             updatedUser
         })
     } catch (error) {
+        console.error(`ERROR---> ${error}`)
         res.status(400).json({
             success : false,
-            message : "Internal server error"
+            message : error.message
+        })
+    }
+}
+
+export const getUsers = async(req, res) =>{
+    try {
+        const {filter} = req.query;
+
+    if(!filter){
+        return res.status(400).json({
+            success : false,
+            message : "Filter query paramater is required"
+        })
+    }
+
+     // Using regex to perform case-insensitive search in firstName and lastName
+    const users = await User.find({
+        $or : [
+            {firstName : { $regex: filter , $options: "i"}},
+            {lastName : { $regex : filter, $options : "i"}}
+        ]
+    }).select("-password")
+
+    if(users.length === 0){
+        return res.status(400).json({
+            success : false,
+            message : "User not found"
+        })
+    }
+
+    res.status(200).json({
+        success : true,
+        message : "User found",
+        users
+    })
+    } catch (error) {
+        console.error(`ERROR---> ${error}`)
+        res.status(400).json({
+            success : false,
+            message : error.message
         })
     }
 }

@@ -11,5 +11,5 @@ app.get('/',(req,res)=>{
     res.send('Hello from Server')
 })
 
-app.use("/api/users",userRoutes)
+app.use("/api/v1/users",userRoutes)
 export default app;
