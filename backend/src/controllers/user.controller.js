@@ -1,4 +1,5 @@
 import User from "../models/user.schema.js"
+import Account from "../models/account.schema.js"
 import generateJWTToken from "../utils/generateJWT.js"
 import comparePassword from "../utils/comparePassword.js";
 import bcrypt from "bcrypt"
@@ -7,7 +8,7 @@ export const signup = async(req,res)=>{
     try {
         const {firstName,lastName,email,password} = req.body;
         if(!firstName || !lastName || !email || !password){
-            return res.json({
+            return res.status(400).json({
                 success : false,
                 message : "All fields are required"
             })
@@ -23,9 +24,24 @@ export const signup = async(req,res)=>{
 
         const token = generateJWTToken(user._id)
         user.password = undefined
+
+
+        
+        // create an account for the user with the default ₹1000 balance
+       try {
+        await Account.create({userId : user._id})
+       } catch (error) {
+        console.error(`ERROR ---> ${error}`)
+        return res.status(500).json({
+            success : false,
+            message : "User created but account setup failed"
+        })
+       }
+
+
         res.status(200).json({
             success : true,
-            message : "Signup successfull",
+            message : "Signup successfull, account created",
             user,
             token
         })
