@@ -17,7 +17,10 @@ export const signup = async(req,res)=>{
         const userExists = await User.findOne({email})
 
         if(userExists){
-            throw new Error("Email already exists")
+            return res.status(400).json({
+                success: false,
+                message: "Email already exists",
+            });
         }
        
         const user = await User.create({firstName,lastName,email,password})
@@ -27,10 +30,13 @@ export const signup = async(req,res)=>{
 
 
         
-        // create an account for the user with the default ₹1000 balance
+        // Generate a random balance betwwen ₹ 1-100000 to the user
+        const randomBalance = Math.floor(Math.random() * 100000) + 1;
+        
        try {
-        await Account.create({userId : user._id})
-       } catch (error) {
+        await Account.create({userId : user._id, balance : randomBalance})
+       } 
+       catch (error) {
         console.error(`ERROR ---> ${error}`)
         return res.status(500).json({
             success : false,
@@ -39,16 +45,17 @@ export const signup = async(req,res)=>{
        }
 
 
-        res.status(200).json({
+       return res.status(200).json({
             success : true,
             message : "Signup successfull, account created",
             user,
+            balance : randomBalance,
             token
         })
     
     } catch (error) {
         console.error(error)
-        res.json({
+        res.status(500).json({
             success : false,
             message : error.message
         })
