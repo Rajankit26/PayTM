@@ -1,5 +1,6 @@
 import express from "express"
 import userRoutes from "../src/routes/user.Routes.js"
+import transactionRoutes from "../src/routes/transaction.routes.js"
 import cors from "cors"
 const app = express()
 
@@ -12,4 +13,5 @@ app.get('/',(req,res)=>{
 })
 
 app.use("/api/v1/users",userRoutes)
+app.use("/api/v1/account", transactionRoutes);
 export default app;

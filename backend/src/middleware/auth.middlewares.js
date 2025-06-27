@@ -18,6 +18,7 @@ export const verifyToken = async(req, res, next) => {
         const payload = JWT.verify(token,process.env.JWT_SECRET)
 
        req.user = await User.findById(payload.id).select("-password")
+       
        if(!req.user){
         return res.status(400).json({
             success : false,

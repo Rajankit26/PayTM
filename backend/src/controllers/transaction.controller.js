@@ -3,14 +3,8 @@ import Account from "../models/account.schema.js"
 
 export const checkBalance = async(req,res) => {
     try {
-        const {userId} = req.query;
-
-        if(!userId){
-           return res.status(400).json({
-            success : false,
-            message : "UserId is required"
-           })
-        }
+        
+        const userId = req.user._id;
 
         const userAccount = await Account.findOne({userId})
 
@@ -39,17 +33,25 @@ export const checkBalance = async(req,res) => {
 
 export const transferMoney = async(req, res) => {
     try {
-        const {senderId, recieverId, amount} = req.body;
+        const {recieverId, amount} = req.body;
 
-        if(!senderId || !recieverId || !amount){
+        if(!recieverId || !amount){
             return res.status(400).json({
                 success : false,
-                message : "Sender, reciever and amount are required"
+                message : "reciever and amount are required"
             })
+        }
+
+        if(amount <= 0){
+            return res.status(400).json({
+            success: false,
+            message: "Amount must be greater than zero",
+  });
         }
 
         // Start a session for transaction
         const session = await mongoose.startSession();
+        const senderId = req.user._id;
 
         try {
              session.startTransaction();
@@ -68,6 +70,8 @@ export const transferMoney = async(req, res) => {
                 throw new Error("Receiver account not found");
             }
 
+            console.log(`Transfer initiated from ${senderAccount} to ${recieverAccount} for amount ${amount}`);
+            
             senderAccount.balance -= amount;
             await senderAccount.save({session})
 
